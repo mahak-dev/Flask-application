@@ -1,21 +1,25 @@
 import numpy as np
+import pandas as pd
 from flask import Flask, request, jsonify, render_template
 import pickle
 
-# Initiate the flask
-flask_app = Flask(__name__)
-model = pickle.load(open("model.pkl","rb"))
+# Create flask app
+app = Flask(__name__)
+model = pickle.load(open("model.pkl", "rb"))
 
-@flask_app.route("/")
+@app.route("/")
 def Home():
     return render_template("index.html")
 
-@flask_app.route("/predict", methods = ["POST"])
+@app.route("/predict", methods = ["POST"])
 def predict():
-    float_features = [float(x) for x in request.form.values()]
-    features = [np.array(float_features)]
-    prediction = model.predict(features)
-    return render_template("index.html", prediction_text = "The Flower species is {}".format(prediction))
+    json_ = request.json
+    query_df = pd.DataFrame(json_)
+    #float_features = [float(x) for x in request.form.values()]
+    #features = [np.array(float_features)]
+    prediction = model.predict(query_df)
+    #return render_template("index.html", prediction_text = "The flower species is {}".format(prediction))
+    return jsonify({"Prediction":list(prediction)})
 
 if __name__ == "__main__":
-     flask_app.run(debug = True)
+    app.run(debug=True)
